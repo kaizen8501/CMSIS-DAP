@@ -829,11 +829,24 @@ uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
             break;
 
         case RESET_RUN:
-            swd_set_target_reset(1);
+#if defined(BOARD_W7500x)
+					os_dly_wait(100);
+
+					while(!swd_init_debug())
+					{
+							swd_set_target_reset(1);
+							os_dly_wait(2);
+
+							swd_set_target_reset(0);
+							os_dly_wait(2);
+					}
+#else				
+ 			swd_set_target_reset(1);
             os_dly_wait(2);
 
             swd_set_target_reset(0);
             os_dly_wait(2);
+#endif		// BOARD_W7500x				
             break;
 
         case RESET_RUN_WITH_DEBUG:
@@ -863,6 +876,36 @@ uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
 
         case RESET_PROGRAM:
 #if !defined(SOFT_RESET)
+	#if defined(BOARD_W7500x)
+            // Use hardware reset (HW RESET)
+            // First reset
+			os_dly_wait(100);
+			swd_set_target_reset(1);
+            os_dly_wait(2);
+            swd_set_target_reset(0);
+            os_dly_wait(2);
+
+			if (!swd_init_debug()) {
+                return 0;
+            }
+
+            // Enable debug and halt the core (DHCSR <- 0xA05F0003)
+            if (!swd_write_word(DBG_HCSR, DBGKEY | C_DEBUGEN | C_HALT)) {
+                return 0;
+            }
+            
+			// Wait until core is halted
+            do {
+                if (!swd_read_word(DBG_HCSR, &val)) {
+                    return 0;
+                }
+            } while((val & S_HALT) == 0);
+
+            // Enable halt on reset
+            if (!swd_write_word(DBG_EMCR, VC_CORERESET)) {
+                return 0;
+            }
+	#else
             // Use hardware reset (HW RESET)
             // First reset
             swd_set_target_reset(1);
@@ -890,6 +933,7 @@ uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
             os_dly_wait(2);
 
             swd_set_target_reset(0);
+	#endif		// BOARD_W7500x
 #else            
             if (!swd_init_debug()) {
                 return 0;

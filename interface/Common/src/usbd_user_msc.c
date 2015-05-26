@@ -64,6 +64,8 @@
 #   define WANTED_SIZE_IN_KB                        (256)
 #elif defined(DBG_LPC4337)
 #   define WANTED_SIZE_IN_KB                        (1024)
+#elif defined(DBG_W7500x)
+#   define WANTED_SIZE_IN_KB                        (128)
 #endif
 
 //------------------------------------------------------------------- CONSTANTS
@@ -564,6 +566,8 @@ static void initDisconnect(uint8_t success) {
 
         enter_isp();
     }
+#elif defined(BOARD_W7500x)
+	int autorst = 1;
 #else
     int autorst = 0;
 #endif
@@ -573,11 +577,15 @@ static void initDisconnect(uint8_t success) {
     main_blink_msd_led(0);
     init(1);
     isr_evt_set(MSC_TIMEOUT_STOP_EVENT, msc_valid_file_timeout_task_id);
+#if defined(BOARD_W7500x)
+	main_usb_disconnect_event();
+#else
     if (!autorst)
     {
         // event to disconnect the usb
         main_usb_disconnect_event();
     }
+#endif		
     semihost_enable();
 }
 
@@ -599,12 +607,26 @@ int jtag_init() {
 
         PORT_SWD_SETUP();
 
+#if defined(BOARD_W7500x)
+	target_set_state(RESET_PROGRAM);
+
+	while(1)
+	{
+		if (!target_flash_init(SystemCoreClock)) {
+			target_set_state(RESET_PROGRAM);						
+		}
+		else
+		{
+			break;
+		}
+	}
+#else
         target_set_state(RESET_PROGRAM);
         if (!target_flash_init(SystemCoreClock)) {
             failSWD();
             return 1;
         }
-
+#endif
         jtag_flash_init = 1;
     }
     return 0;
