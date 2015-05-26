@@ -567,7 +567,7 @@ static void initDisconnect(uint8_t success) {
         enter_isp();
     }
 #elif defined(BOARD_W7500x)
-	int autorst = 1;
+    int autorst = 1;
 #else
     int autorst = 0;
 #endif
@@ -578,7 +578,7 @@ static void initDisconnect(uint8_t success) {
     init(1);
     isr_evt_set(MSC_TIMEOUT_STOP_EVENT, msc_valid_file_timeout_task_id);
 #if defined(BOARD_W7500x)
-	main_usb_disconnect_event();
+    main_usb_disconnect_event();
 #else
     if (!autorst)
     {
@@ -608,18 +608,18 @@ int jtag_init() {
         PORT_SWD_SETUP();
 
 #if defined(BOARD_W7500x)
-	target_set_state(RESET_PROGRAM);
+    target_set_state(RESET_PROGRAM);
 
-	while(1)
-	{
-		if (!target_flash_init(SystemCoreClock)) {
-			target_set_state(RESET_PROGRAM);						
-		}
-		else
-		{
-			break;
-		}
-	}
+    while(1)
+    {
+        if (!target_flash_init(SystemCoreClock)) {
+        target_set_state(RESET_PROGRAM);						
+        }
+        else
+        {
+            break;
+        }
+    }
 #else
         target_set_state(RESET_PROGRAM);
         if (!target_flash_init(SystemCoreClock)) {
