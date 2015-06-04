@@ -328,6 +328,9 @@ __task void main_task(void) {
     // Target running
     //target_set_state(RESET_RUN_WITH_DEBUG);
 #endif
+#ifdef BOARD_W7500x
+    target_set_state(RESET_RUN);
+#endif
 
     // start semihost task
     semihost_init();

@@ -28,17 +28,8 @@ static OS_TID isr_notify;
 #endif
 
 #ifdef SW_RESET_BUTTON
-	#ifdef BOARD_W7500x
-    /* H/W version 1.0 */
-    //#define RESET_PORT       (0)
-    //#define RESET_PIN        (1)
-    /* H/W version 1.1 */
-    #define RESET_PORT        (1)
-    #define RESET_PIN         (19)
-	#else
-    #define RESET_PORT        (1)
-    #define RESET_PIN         (19)
-	#endif
+#define RESET_PORT        (1)
+#define RESET_PIN         (19)
 #define RESET_INT_CH      (0)
 #define RESET_INT_MASK    (1 << RESET_INT_CH)
 #endif
@@ -119,7 +110,14 @@ void gpio_enable_button_flag(OS_TID task, uint16_t flags) {
 #endif
 }
 
+#if defined(BOARD_W7500x)
+#include "DAP.h"
+#endif
+
 void FLEX_INT0_IRQHandler() {
+#if defined(BOARD_W7500x)
+	  Delayms(100);
+#endif	
     isr_evt_set(isr_flags, isr_notify);
     NVIC_DisableIRQ(FLEX_INT0_IRQn);
 

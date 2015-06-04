@@ -830,16 +830,14 @@ uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
 
         case RESET_RUN:
 #if defined(BOARD_W7500x)
-            os_dly_wait(100);
-
-            while(!swd_init_debug())
+            do
             {
                 swd_set_target_reset(1);
                 os_dly_wait(2);
 
                 swd_set_target_reset(0);
-                os_dly_wait(2);
-            }
+                os_dly_wait(100);
+            }while(!swd_init_debug());
 #else				
             swd_set_target_reset(1);
             os_dly_wait(2);
